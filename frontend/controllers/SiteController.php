@@ -1,7 +1,9 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\CreateProfiles;
 use common\models\Profile;
+use common\models\User;
 use frontend\models\ResendVerificationEmailForm;
 use frontend\models\VerifyEmailForm;
 use Yii;
@@ -75,8 +77,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $profile = Profile::create(1, 'admin',
-          'admin');
+
         return $this->render('index');
     }
 
@@ -156,13 +157,18 @@ class SiteController extends Controller
     public function actionSignup()
     {
         $model = new SignupForm();
+        $profile = new CreateProfiles();
         if ($model->load(Yii::$app->request->post()) && $model->signup()) {
+            $post = Yii::$app->request->post();
+            $user = User::find()->where(['username'=>$model->username])->one();
+            Profile::create($user->id, $post['CreateProfiles']['first_name'], $post['CreateProfiles']['last_name'], $post['CreateProfiles']['middle_name'], $post['CreateProfiles']['phone']);
             Yii::$app->session->setFlash('success', 'Thank you for registration. Please check your inbox for verification email.');
             return $this->goHome();
         }
 
         return $this->render('signup', [
             'model' => $model,
+            'profile'=>$profile
         ]);
     }
 
